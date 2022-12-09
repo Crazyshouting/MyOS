@@ -27,12 +27,12 @@
 
     gdt_ptr dw GDT_LIMIT ; gdt指针，低16位定义大小，高32位定义全局描述符表地址，共48位
              dd GDT_BASE
-    loadermsg db '2 loader in real'
+    loadermsg db '2 loader in real.'
 
-    loader_start:
+loader_start:
     ; 实模式打印字符串功能
     ; int 13，第 06 号功能
-    ；开始处于实模式
+    ; 开始处于实模式
     ; 使用int 10，ax = 13，打印字符串
     ; bp 存储字符串
     ; cx，表示字符串长度，这点和上卷清屏的设置不同
@@ -45,11 +45,13 @@
 
 
 
-
+    
 
     mov sp, LOADER_BASE_ADDR
     mov bp, loadermsg
     mov cx, 17
+    mov ax, cs
+    mov es, ax
     mov ax, 0x1301
     mov bx, 0x001f
     mov dx, 0x1800

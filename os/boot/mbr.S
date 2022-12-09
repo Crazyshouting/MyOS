@@ -31,27 +31,28 @@ SECTION MBR vstart=0x7c00
 
     int 0x10
 
+    
 ; 输出字符串 MBR，主要操作显存, 字符+属性，2字节
     mov byte [gs:0x00], '1'
     mov byte [gs:0x01], 0xA4
 
-    mov byte [gs:0x00], ''
-    mov byte [gs:0x01], 0xA4
+    mov byte [gs:0x02], ''
+    mov byte [gs:0x03], 0xA4
 
-    mov byte [gs:0x00], 'M'
-    mov byte [gs:0x01], 0xA4
+    mov byte [gs:0x04], 'M'
+    mov byte [gs:0x05], 0xA4
 
-    mov byte [gs:0x00], 'B'
-    mov byte [gs:0x01], 0xA4
+    mov byte [gs:0x06], 'B'
+    mov byte [gs:0x07], 0xA4
 
-    mov byte [gs:0x00], 'R'
-    mov byte [gs:0x01], 0xA4
-
+    mov byte [gs:0x08], 'R'
+    mov byte [gs:0x09], 0xA4
+    
     mov eax, LOADER_START_SECTOR    ; 硬盘的LBA地址
     mov bx, LOADER_BASE_ADDR        ; 硬盘数据写入内存地址
-    mov cx, 1                       ; 待读取的硬盘扇区数
+    mov cx, 3                       ; 待读取的硬盘扇区数
     call rd_disk_m_16               ; 硬盘读入函数，先push cs、ip内容当前地址到栈，再jmp到rd_disk_m_16函数的位置
-
+    
     jmp LOADER_BASE_ADDR            ; 进入硬盘写入后内存区域
 
 
@@ -60,6 +61,7 @@ rd_disk_m_16:
 
     ; eax 中存储LBA地址 0x2
     ; bx 硬盘写入的位置 0x900
+
 
     mov esi, eax ; 备份 eax 和 cx 的数据
     mov di, cx
@@ -96,21 +98,21 @@ rd_disk_m_16:
 
     ; 第三步-----------从硬盘读取对应数据
     mov dx, 0x1f7   ; 该端口读时获取硬盘状态，写时对硬盘的操作命令
-    mov ax, 0x20
+    mov al, 0x20
     out dx, al
-
+    
     ; 第四步-----------检查硬盘状态
     .not_ready:
         ; 给硬盘处理时间，使用nop
         nop
         in al, dx       ; 此时硬盘还是0x1f7端口，先获取硬盘状态看是否准备好，指硬盘内寻址成功
         and al, 0x88
-        cmp al, 0x88    
+        cmp al, 0x08    
         jnz .not_ready  ; 如果没有则继续等待
 
 
         mov ax, di  ; 要读取的扇区数
-        mov dx, 256
+        mov dx, 768
         mul dx      ; ax = 256
         mov cx, ax  ; cx = 256，读取的时候一次两个字节，扇区大小512B，读 256 次
     ; 接下来从0x1f0端口读取数据
@@ -122,5 +124,5 @@ rd_disk_m_16:
         loop .go_on_read    ; 如果cx不为0，继续读取，此时cx更新为255
         ret             ; jmp到原来pop栈顶内容，回到call的位置，再 pop
 
-        times 510 - ($ - $$) db 0
-        db 0x55, 0xaa
+    times 510 - ($ - $$) db 0
+    db 0x55, 0xaa
