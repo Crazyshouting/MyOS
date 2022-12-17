@@ -113,10 +113,6 @@ loader_start:
     add edx, 0x100000
 
 .error_hlt:
-<<<<<<< HEAD
-=======
-    mov byte [gs:160], 'A'
->>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
 	jmp $
 
 .mem_get_ok:
@@ -155,17 +151,12 @@ p_mode_start:
     mov ax, SELECTOR_VIDEO
     mov gs, ax
 
-<<<<<<< HEAD
     mov eax, KERNEL_START_SECTOR  ; 0x9
     mov ebx, KERNEL_BIN_BASE_ADDR ; kernel.bin 加载进内存的位置，0x70000
     mov ecx, 200
     
 	call rd_disk_m_32 ; 从硬盘的第9个扇读取200个扇区
     
-=======
-    mov byte [gs:160], 'P'   ; 第160个字节，显示P字符，每个字符2字节，所以是第81个字符，在第二行第一个
-    ; jmp $
->>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
     call setup_page ; 创建页表目录和页表
 
 
@@ -192,7 +183,6 @@ p_mode_start:
 
 
     lgdt [gdt_ptr]
-<<<<<<< HEAD
     mov byte [gs:160], 'V'
 	jmp SELECTOR_CODE:enter_kernel
     jmp $
@@ -247,22 +237,12 @@ mem_cpy:
 	pop ecx
 	pop ebx
 	ret	
-=======
-
-	mov byte [gs:160], 'V'
-    jmp $
-
-
->>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
 
 setup_page:
 
     mov ecx, 4096
     mov esi, 0
-<<<<<<< HEAD
 
-=======
->>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
 .clear_page_dir:
     mov byte [PAGE_DIR_TABLE_POS + esi], 0  ; 清空 0x100000 的物理地址
     inc esi
@@ -306,7 +286,6 @@ setup_page:
 	loop .create_kernel_pde
 	ret 
 
-<<<<<<< HEAD
 
 ; 读取硬盘的n个扇区
 rd_disk_m_32:
@@ -371,5 +350,3 @@ rd_disk_m_32:
         add bx, 2       ; bx 加2，0x70002
         loop .go_on_read    ; 如果cx不为0，继续读取，此时cx更新为255
         ret             ; jmp到原来pop栈顶内容，回到call的位置，再 pop
-=======
->>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
