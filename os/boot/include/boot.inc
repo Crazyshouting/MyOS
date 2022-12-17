@@ -34,8 +34,12 @@ RPL3 equ 11b
 TI_GDT equ 000b
 TI_LDT equ 100b
 
+<<<<<<< HEAD
 PT_NULL equ 0
 KERNEL_ENTRY_POINT equ 0xc001500
+=======
+
+>>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
 ; -------页表属性
 PG_P equ 1b
 PG_RW_R equ 00b 

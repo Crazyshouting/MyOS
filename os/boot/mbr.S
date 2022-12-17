@@ -111,8 +111,13 @@ rd_disk_m_16:
         jnz .not_ready  ; 如果没有则继续等待
 
 
+<<<<<<< HEAD
         mov ax, di  ; 要读取的扇区数, 3
         mov dx, 256
+=======
+        mov ax, di  ; 要读取的扇区数
+        mov dx, 768
+>>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
         mul dx      ; ax = 256
         mov cx, ax  ; cx = 256，读取的时候一次两个字节，扇区大小512B，读 256 次
     ; 接下来从0x1f0端口读取数据

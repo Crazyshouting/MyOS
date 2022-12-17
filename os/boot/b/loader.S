@@ -218,6 +218,7 @@ setup_page:
 	add edx, 4096
 	inc esi
 	loop .create_pte
+<<<<<<< HEAD
 
 
     mov eax, PAGE_DIR_TABLE_POS
@@ -296,3 +297,20 @@ mem_cpy:
 	pop ecx
 	pop ebx
 	ret	
+=======
+
+
+    mov eax, PAGE_DIR_TABLE_POS
+	add eax, 0x2000				; eax=0x102000
+	or eax, PG_US_U | PG_RW_W | PG_P
+	mov ebx, PAGE_DIR_TABLE_POS	; ebx=0x100000
+	mov ecx, 254
+	mov esi, 769
+.create_kernel_pde:
+	mov [ebx+esi*4], eax 	; 写内核的256个页表
+	inc esi
+	add eax, 0x1000
+	loop .create_kernel_pde
+	ret 
+
+>>>>>>> 48e2b9e0077b416512b47432f07518e384e9f6e1
