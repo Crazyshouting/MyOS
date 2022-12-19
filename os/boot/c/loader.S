@@ -185,13 +185,12 @@ p_mode_start:
     lgdt [gdt_ptr]
     mov byte [gs:160], 'V'
 	jmp SELECTOR_CODE:enter_kernel
-    jmp $
+    
 
 enter_kernel:
 	call kernel_init
 	mov esp, 0xc009f000
 	jmp KERNEL_ENTRY_POINT
-    jmp $
 
 kernel_init:
 	; 加载kernel程序到内存位置0x70000中，后面需要实现kernel进程映像
@@ -208,7 +207,6 @@ kernel_init:
 .each_segment:
 	cmp byte [ebx + 0], PT_NULL
 	je .PTNULL
-
 	push dword [ebx + 16] ; 段偏移16个字节的位置，放的是p_filesz，表示该段在程序中的大小
 	mov eax, [ebx + 4] 
 	add eax, KERNEL_BIN_BASE_ADDR
@@ -235,8 +233,8 @@ mem_cpy:
 	rep movsb
 
 	pop ecx
-	pop ebx
-	ret	
+	pop ebp
+	ret
 
 setup_page:
 
@@ -343,10 +341,10 @@ rd_disk_m_32:
         mul dx      ; ax = 256
         mov cx, ax  ; cx = 256，读取的时候一次两个字节，扇区大小512B，读 256 次
     ; 接下来从0x1f0端口读取数据
-        mov dx, 0x1f0 ; 
+        mov dx, 0x1f0 ;
     .go_on_read:
         in ax, dx       ; dx读取2个字节数据，传给ax
         mov [ebx], ax   ; ax内容放入内存 0x70000地址
-        add bx, 2       ; bx 加2，0x70002
+        add ebx, 2       ; ebx 加2，0x70002
         loop .go_on_read    ; 如果cx不为0，继续读取，此时cx更新为255
         ret             ; jmp到原来pop栈顶内容，回到call的位置，再 pop
