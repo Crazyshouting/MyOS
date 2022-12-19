@@ -3,32 +3,7 @@ RPL0 equ 0
 SELECTOR_VIDEO equ (0x0003 << 3) + TI_GDT + RPL0
 
 [bits 32]
-section .data
-put_int_buffer dq 0
-
 section .text
-global put_str
-put_str:
-	push ebx
-	push ecx
-	xor ecx, ecx
-	mov ebx, [esp + 12]
-
-.goon:
-	mov cl, [ebx]
-	cmp cl, 0
-	jz .str_over
-	push ecx ; if not a '\0', then call put_char
-	call put_char
-	add esp, 4
-	inc ebx
-	jmp .goon
-.str_over:
-	pop ecx
-	pop ebx
-	ret
-
-
 global put_char
 put_char:
 
@@ -131,58 +106,4 @@ put_char:
 		popad
 		ret
 
-global put_int
-put_int:
-	pushad
-	mov ebp, esp
-	mov eax, [ebp + 4*9] ; eax and edx store the number
-	mov edx, eax
-	mov edi , 7		; 偏移，表示put_int_buffer的最后一字节
-	mov ecx, 8		; 需要显示的字符个数，8个
-	mov ebx, put_int_buffer	; ebx store the address of put_int_buffer
 
-.16based_4bits:
-	and edx, 0x0000000F ; edx 前4位做与 
-	cmp edx, 9			; 判断数字是否大于 9
-	jg .is_A2F			; 大于9则跳转
-	add edx, '0'		; 
-	jmp .store
-.is_A2F:
-	sub edx, 10		; 数字 >= 10，先减10，再加 'A'，用于显示字符，即16进制
-	add edx, 'A'
-
-.store:
-	mov [ebx + edi], dl	; 低8位，放入ebx+edi地址
-	dec edi				; edi 减一，成6，往前移动一个字节
-	shr eax, 4			; eax 右移4位，需要显示的数字的后8位变成后4位
-	mov edx, eax		; ecx = 7，还有 7 个数字要处理显示
-	loop .16based_4bits
-
-
-.ready_to_print:
-	inc edi		; buffer内容处理完后 edi 为-1，加一为0
-
-.skip_prefix_0:
-	cmp edi, 8  ; 如果edi已经是末尾了，那就je跳转，说明可以打印了
-	je .full0	; 否则继续执行go_on_skip
-
-.go_on_skip:
-	mov cl, [put_int_buffer + edi] ; buffer 移入 cl
-	inc edi
-	cmp cl, '0'	; 如果 cl 为0，那么跳转
-	je .skip_prefix_0	; 
-	dec edi		; 如果 cl 不是 0 ，那么减一，变成原来位置，然后放上数字
-	jmp .put_each_num
-
-.full0:
-	mov cl, '0'
-.put_each_num:	; 调用put_char，显示数字
-	push ecx
-	call put_char
-	add esp, 4
-	inc edi
-	mov cl, [put_int_buffer + edi]
-	cmp edi, 8
-	jl .put_each_num
-	popad
-	ret
