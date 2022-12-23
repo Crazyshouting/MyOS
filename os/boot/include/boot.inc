@@ -34,8 +34,8 @@ RPL3 equ 11b
 TI_GDT equ 000b
 TI_LDT equ 100b
 
-PT_NULL equ 0
-KERNEL_ENTRY_POINT equ 0xc001500
+PT_NULL equ 0x00000000
+KERNEL_ENTRY_POINT equ 0xc0001500
 ; -------页表属性
 PG_P equ 1b
 PG_RW_R equ 00b 
