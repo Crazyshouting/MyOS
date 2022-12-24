@@ -1,4 +1,12 @@
-nasm -f elf -o lib/kernel/print.o lib/kernel/print.S
-gcc -m32 -I ./lib/kernel/ -c kernel/main.c -o kernel/main.o
-ld -m elf_i386 -Ttext 0xc0001500 -e main -o kernel.bin kernel/main.o lib/kernel/print.o
+gcc -m32 -I lib/kernel/ -I lib/ -I kernel/ -c -fno-builtin \
+	-o build/main.o kernel/main.c
+nasm -f elf -o build/print.o lib/kernel/print.S
+nasm -f elf -o build/kernel.o kernel/kernel.S
+gcc -m32 -I lib/kernel/ -I lib/ -I kernel/ -c -fno-builtin \
+    -o build/interrupt.o kernel/interrupt.c
+gcc -m32 -I lib/kernel/ -I lib/ -I kernel/ -c -fno-builtin \
+    -o build/init.o kernel/init.c
+
+ld -m elf_i386 -Ttext 0xc0001500 -e main -o build/kernel.bin build/main.o build/init.o \
+build/print.o build/interrupt.o build/kernel.o
 

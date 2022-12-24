@@ -31,22 +31,37 @@ SECTION MBR vstart=0x7c00
 
     int 0x10
 
-    
+    xor bx, bx
+    mov dx, 0x03d4
+    mov al, 0x0e
+    out dx, al
+    mov dx, 0x03d5
+    mov al, 0x00
+    out dx, al
+
+    mov dx, 0x03d4
+    mov al, 0x0f
+    out dx, al
+    mov dx, 0x03d5
+    mov al, 0x00
+    out dx, al
+
+
 ; 输出字符串 MBR，主要操作显存, 字符+属性，2字节
-    mov byte [gs:0x00], '1'
-    mov byte [gs:0x01], 0xA4
+;    mov byte [gs:0x00], '1'
+;    mov byte [gs:0x01], 0xA4
 
-    mov byte [gs:0x02], ''
-    mov byte [gs:0x03], 0xA4
+;    mov byte [gs:0x02], ''
+;    mov byte [gs:0x03], 0xA4
 
-    mov byte [gs:0x04], 'M'
-    mov byte [gs:0x05], 0xA4
+;    mov byte [gs:0x04], 'M'
+;    mov byte [gs:0x05], 0xA4
 
-    mov byte [gs:0x06], 'B'
-    mov byte [gs:0x07], 0xA4
+;    mov byte [gs:0x06], 'B'
+;    mov byte [gs:0x07], 0xA4
 
-    mov byte [gs:0x08], 'R'
-    mov byte [gs:0x09], 0xA4
+;    mov byte [gs:0x08], 'R'
+;    mov byte [gs:0x09], 0xA4
     
     mov eax, LOADER_START_SECTOR    ; 硬盘的LBA地址
     mov bx, LOADER_BASE_ADDR        ; 硬盘数据写入内存地址

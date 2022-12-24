@@ -1,9 +1,9 @@
 #include "print.h"
-void main(){
-	put_char('3');
-	put_char('\n');
+#include "init.h"
+
+void main(void){
 	put_str("I'm a kernel\n");
-	put_int(0x21124);
-	put_char('\n');
+	init_all();
+	asm volatile ("sti"); // 表示开中断，将elfag寄存器中的 IF 位置 1。
 	while(1);
 }

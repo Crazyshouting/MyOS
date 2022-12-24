@@ -183,7 +183,7 @@ p_mode_start:
 
 
     lgdt [gdt_ptr]
-    mov byte [gs:160], 'V'
+    ; mov byte [gs:160], 'V'
 	jmp SELECTOR_CODE:enter_kernel
     
 
