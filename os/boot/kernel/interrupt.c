@@ -9,6 +9,13 @@
 #define PIC_S_CTRL 0xa0
 #define PIC_S_DATA 0xa1
 
+#define IDT_DESC_CNT 0X21 // 33, define the number of interr. process
+
+extern intr_handler intr_entry_table[IDT_DESC_CNT];
+char* intr_name[IDT_DESC_CNT];
+intr_handler idt_table[IDT_DESC_CNT];
+
+
 // 初始化 ICW, set OCW
 static void pic_init(void){
 	// 初始化主片
@@ -34,8 +41,6 @@ static void pic_init(void){
 
 
 
-
-#define IDT_DESC_CNT 0X21
 //中断门描述符结构体，8字节
 struct gate_desc{
 	uint16_t func_offset_low_word; // 中断程序在目标段内的偏移量，低16位，之后是高16位
@@ -49,7 +54,7 @@ struct gate_desc{
 static void make_idt_desc(struct gate_desc* p_gdesc, uint8_t attr, intr_handler function);
 static struct gate_desc idt[IDT_DESC_CNT]; // idt 中断描述符表
 
-extern intr_handler intr_entry_table[IDT_DESC_CNT];
+
 
 static void make_idt_desc(struct gate_desc* p_gdesc, uint8_t attr, intr_handler function){
 	p_gdesc->func_offset_low_word = (uint32_t) function & 0x0000ffff;
@@ -67,10 +72,49 @@ static void idt_desc_init(void){
 	put_str("idt_desc_init done\n");
 }
 
+
+static void general_intr_handler(uint8_t vec_nr){
+	// 对于 0x27和0x2f号的伪中断不处理
+	if(vec_nr == 0x27 || vec_nr == 0x2f){
+		return;
+	}
+	put_str("int vector : 0x");
+	put_int(vec_nr);
+	put_char('\n');
+}
+
+static void exception_init(void){
+	int i;
+	for(i = 0; i < IDT_DESC_CNT; ++i){
+		idt_table[i] = general_intr_handler; // 默认的中断处理函数
+		intr_name[i] = "unknown";
+	}
+	intr_name[0] = "#DE Divide Error";
+	intr_name[1] = "#DB Debug Exception";
+	intr_name[2] = "NMI Interrupt";
+	intr_name[3] = "#BP Breakpoint Exception";
+	intr_name[4] = "#OF Overflow Exception";
+	intr_name[5] = "#BR BOUND Range Exceeded Exception";
+	intr_name[6] = "#UD Invalid Opcode Exception";
+	intr_name[7] = "#NM Device Not Available Exception";
+	intr_name[8] = "#DF Double Fault  Exception";
+	intr_name[9] = "Coprocessor Segment Overrun";
+	intr_name[10] = "#TS Ivalid TSS Exception";
+	intr_name[11] = "#NP Segment Not Present";
+	intr_name[12] = "#SS Stack Fault Exception";
+	intr_name[13] = "#GP General Protection Exception";
+	intr_name[14] = "#PF Page-fault Exception";
+	intr_name[16] = "#MF x87 FPU Floating-Point Error";
+	intr_name[17] = "#AC Alignment Check Exception";
+	intr_name[18] = "#MC Machine-Check Exception";
+	intr_name[19] = "#XF SIMD Floating-Point Exception";
+}
+
 void idt_init(){
 	put_str("idt_init start\n");
-	idt_desc_init(); // 初始化中断描述符表
-	pic_init();		 // 初始化中断控制器
+	idt_desc_init(); 	// 初始化中断描述符表
+	exception_init(); 	// 初始化前20个中断处理函数名
+	pic_init();			// 初始化中断控制器 8259A
 	// idt 首地址即为中断描述符的初始地址，左移16位后是48位，接着使用lidt加载该地址
 	// 也就是 idt_operand 就是寄存器 LGDT 中的内容
 	uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t) (uint32_t) idt << 16));

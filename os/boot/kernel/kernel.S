@@ -2,12 +2,13 @@
 ; 共定义32个中断程序，由于0-31的中断号是cpu内部或者保留的，所以，后续使用的中断号最低是32号，也就是
 ; 初始的中断向量号是32，用于中断描述符表索引对应的中断程序
 %define ERROR_CODE nop
+extern idt_table
 
 %define ZERO push 0
 extern put_str
 
 section .data
-intr_str db "interrupt occur!", 0xa, 0
+; intr_str db "interrupt occur!", 0xa, 0
 global intr_entry_table
 
 intr_entry_table:
@@ -17,20 +18,36 @@ section .text
 
 intr%1entry:
     %2
-    push intr_str
-    call put_str
-    add esp, 4
+    push ds
+    push es
+    push fs
+    push gs
+    pushad
 
     mov al, 0x20
     out 0xa0, al
     out 0x20, al
 
-    add esp, 4
-    iret
+    push %1
+
+    call [idt_table + %1*4]
+    jmp intr_exit
 
 section .data
     dd intr%1entry
 %endmacro
+
+section .text
+global intr_exit
+intr_exit:
+    add esp, 4
+    popad
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    add esp, 4
+    iretd
 
 VECTOR 0x00, ZERO
 VECTOR 0x01, ZERO
