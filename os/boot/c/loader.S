@@ -252,37 +252,45 @@ setup_page:
     add eax, 0x1000		; 4KB空间用来当作目录页，之后的空间用作页表地址
     mov ebx, eax		; eax=ebx=0x101000
 
-
-
-
     or eax, PG_US_U | PG_RW_W | PG_P    ; eax 写权限和用户权限等的添加
-    mov [PAGE_DIR_TABLE_POS + 0x0], eax ; 第一个页目录表记录第一条页表的位置
-    mov [PAGE_DIR_TABLE_POS + 0xc00], eax ; 第768个页表和第一个相同，0xc00是3072字节
-    sub eax, 0x1000		; eax 重新是第一个页目录的值，下一句放入地址 0x101000-4=0x100ffc，指向页目录表第一项
-    mov [PAGE_DIR_TABLE_POS + 4092], eax
+    mov [PAGE_DIR_TABLE_POS + 0x0], eax ; 第0个页目录表记录第一个页表的位置，0x101000
+    mov [PAGE_DIR_TABLE_POS + 0xc00], eax ; 第768个页表和第0个相同，0xc00是3072字节，0x101000
+    sub eax, 0x1000		; eax 重新是第一个页目录的值，下一句放入地址 0x101000-4=0x100ffc
+    mov [PAGE_DIR_TABLE_POS + 4092], eax ; 0x100000 放入地址物理地址0x100ffc，指向页目录表本身第0项
+
+    ;0x100000, 0x101000
+    ;0x100c00, 0x101000
+    ;0x100ffc, 0x100000
 
     mov ecx, 256
     mov esi, 0
 	mov edx, PG_US_U | PG_RW_W | PG_P
 .create_pte:
-	mov [ebx+esi*4], edx ; 循环256次，从0x101000开始，每4字节写入edx，edx保存的是物理页地址，这里写了前256个页表
-	add edx, 4096
+	mov [ebx+esi*4], edx ; 循环256次，从物理0x101000开始，每4字节写入edx，edx保存的是物理页地址，这里写了前256个页表
+	add edx, 4096        ; 0, 0x1000等写入 地址 0x101000，0x101004...0x13fc
 	inc esi
 	loop .create_pte
 
-
+    ; 0x101000, 0x000000
+    ; 0x101004, 0x001000
+    ; 0x1013fc, 0x0ff000
+    
     mov eax, PAGE_DIR_TABLE_POS
 	add eax, 0x2000				; eax=0x102000
 	or eax, PG_US_U | PG_RW_W | PG_P
 	mov ebx, PAGE_DIR_TABLE_POS	; ebx=0x100000
 	mov ecx, 254
 	mov esi, 769
+
 .create_kernel_pde:
-	mov [ebx+esi*4], eax 	; 写内核的256个页表
+	mov [ebx+esi*4], eax 	; 写内核的256个页表，在后256个目录中
 	inc esi
 	add eax, 0x1000
 	loop .create_kernel_pde
 	ret 
+    ; 0x100c04, 0x102000
+    ; 0x100c08, 0x103000
+    ; 0x100ff8, 0x1ff000
 
 
 ; 读取硬盘的n个扇区
